@@ -2,7 +2,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const ARQUIVO_DADOS = path.join(process.cwd(), 'dados-miyukometro.json');
+// Na Vercel, só podemos escrever em /tmp
+// Para produção, considere usar um banco de dados (ex: Supabase, MongoDB, etc.)
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const ARQUIVO_DADOS = IS_VERCEL 
+    ? path.join('/tmp', 'dados-miyukometro.json')
+    : path.join(process.cwd(), 'dados-miyukometro.json');
 
 function lerDados() {
     try {
@@ -12,6 +17,22 @@ function lerDados() {
         }
     } catch (erro) {
         console.error('Erro ao ler dados:', erro);
+    }
+    
+    // Se não existir, tentar ler do arquivo original (deploy)
+    try {
+        const arquivoOriginal = path.join(process.cwd(), 'dados-miyukometro.json');
+        if (fs.existsSync(arquivoOriginal)) {
+            const conteudo = fs.readFileSync(arquivoOriginal, 'utf-8');
+            const dados = JSON.parse(conteudo);
+            // Copiar para /tmp na primeira execução
+            if (IS_VERCEL) {
+                salvarDados(dados);
+            }
+            return dados;
+        }
+    } catch (erro) {
+        console.error('Erro ao ler arquivo original:', erro);
     }
     
     return {
@@ -35,10 +56,16 @@ function lerDados() {
 function salvarDados(dados) {
     try {
         dados.dataUltimaAtualizacao = new Date().toISOString();
+        // Garantir que o diretório existe
+        const dir = path.dirname(ARQUIVO_DADOS);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
         fs.writeFileSync(ARQUIVO_DADOS, JSON.stringify(dados, null, 2), 'utf-8');
         return true;
     } catch (erro) {
         console.error('Erro ao salvar dados:', erro);
+        console.error('Caminho tentado:', ARQUIVO_DADOS);
         return false;
     }
 }
@@ -65,8 +92,18 @@ module.exports = async (req, res) => {
     }
     
     try {
+        // Parse do body se necessário (Vercel pode não fazer isso automaticamente)
+        let body = req.body;
+        if (typeof body === 'string' || Buffer.isBuffer(body)) {
+            try {
+                body = JSON.parse(body.toString());
+            } catch (e) {
+                // Body pode estar vazio para DELETE
+            }
+        }
+        
         const { id } = req.query;
-        const { senha } = req.body;
+        const { senha } = body || {};
         
         const comentarioId = parseInt(id);
 

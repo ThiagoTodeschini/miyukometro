@@ -5,7 +5,8 @@
   "main": "servidor.js",
   "scripts": {
     "iniciar": "node servidor.js",
-    "dev": "nodemon servidor.js"
+    "dev": "nodemon servidor.js",
+    "build": "node build.js"
   },
   "keywords": [
     "miyukometro",

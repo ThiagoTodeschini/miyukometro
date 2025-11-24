@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyukometro - Sistema de Monitoramento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #f87171, #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes earthquake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-2px, 2px); }
+            20% { transform: translate(2px, -2px); }
+            30% { transform: translate(-2px, -2px); }
+            40% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, 2px); }
+            60% { transform: translate(2px, -2px); }
+            70% { transform: translate(-2px, -2px); }
+            80% { transform: translate(2px, 2px); }
+            90% { transform: translate(-2px, -2px); }
+        }
+        .earthquake {
+            animation: earthquake 0.5s infinite;
+        }
+        @keyframes redFlash {
+            0%, 100% { background-color: rgba(127, 29, 29, 0); }
+            50% { background-color: rgba(220, 38, 38, 0.3); }
+        }
+        .red-alert {
+            animation: redFlash 1s infinite;
+        }
+        .red-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        @keyframes penisMove {
+            0% { transform: translateX(150px) rotate(180deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(-90px) rotate(160deg); opacity: 0; }
+        }
+        
+        .penis-animation {
+            animation: penisMove 3s ease-in-out infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .horn-bounce {
+            animation: bounce 1s ease-in-out infinite;
+        }
+        
+        @keyframes tailWag {
+            0%, 100% { transform: rotate(-20deg); }
+            50% { transform: rotate(20deg); }
+        }
+        
+        .tail-wag {
+            animation: tailWag 0.8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-red-900 text-white" id="pageBody">
+    <!-- Overlay de alerta vermelho -->
+    <div id="redAlertOverlay" class="red-alert-overlay hidden"></div>
+    
+    <div class="max-w-4xl mx-auto p-4">
+        <!-- Header com foto -->
+        <div class="text-center mb-8 pt-8">
+            <div class="relative inline-block">
+                <div class="w-48 h-48 rounded-full bg-gradient-to-br from-red-500 to-orange-500 p-1 mb-4 mx-auto shadow-2xl">
+                    <div class="w-full h-full rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
+                        <img src="imgs/bolota.png" alt="Miyuki" class="w-full h-full object-cover rounded-full">
+                    </div>
+                </div>
+                
+                <!-- Chifres de demônio -->
+                <div id="leftHorn" class="absolute -top-8 left-12 hidden horn-bounce">
+                    <div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[40px] border-b-red-600 transform rotate-[-20deg] drop-shadow-lg"></div>
+                </div>
+                <div id="rightHorn" class="absolute -top-8 right-12 hidden horn-bounce" style="animation-delay: 0.2s;">
+                    <div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[40px] border-b-red-600 transform rotate-[20deg] drop-shadow-lg"></div>
+                </div>
+                
+                <!-- Rabinho de demônio -->
+                <div id="demonTail" class="absolute -bottom-2 -right-6 hidden tail-wag" style="transform-origin: top left;">
+                    <svg width="60" height="80" viewBox="0 0 60 80" class="drop-shadow-lg">
+                        <path d="M 10 10 Q 30 40, 20 70 Q 18 75, 25 78 Q 32 75, 30 70 Q 40 40, 20 10 Z" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+                        <polygon points="20,72 25,82 30,72" fill="#7f1d1d"/>
+                    </svg>
+                </div>
+                
+                <!-- Pênis animado -->
+                <div id="penisElement" class="absolute bottom-8 -right-28 hidden penis-animation">
+                    <svg width="120" height="40" viewBox="0 0 120 40" class="drop-shadow-xl">
+                        <ellipse cx="15" cy="20" rx="15" ry="18" fill="#fdb8b8" stroke="#f59e9e" stroke-width="2"/>
+                        <rect x="15" y="8" width="90" height="24" rx="8" fill="#fdb8b8" stroke="#f59e9e" stroke-width="2"/>
+                        <ellipse cx="105" cy="20" rx="12" ry="16" fill="#f59e9e" stroke="#f28c8c" stroke-width="2"/>
+                        <line x1="30" y1="12" x2="30" y2="28" stroke="#f28c8c" stroke-width="1.5" opacity="0.6"/>
+                        <line x1="50" y1="10" x2="50" y2="30" stroke="#f28c8c" stroke-width="1.5" opacity="0.6"/>
+                        <line x1="70" y1="12" x2="70" y2="28" stroke="#f28c8c" stroke-width="1.5" opacity="0.6"/>
+                        <ellipse cx="20" cy="35" rx="8" ry="6" fill="#fdb8b8" stroke="#f59e9e" stroke-width="1.5"/>
+                        <ellipse cx="32" cy="35" rx="8" ry="6" fill="#fdb8b8" stroke="#f59e9e" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                
+                <div id="warningIcon" class="absolute -top-2 -right-2 hidden">
+                    <svg class="w-12 h-12 text-red-500 drop-shadow-lg animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-5xl font-bold mb-2 gradient-text">
+                MIYUKOMETRO
+            </h1>
+            <p class="text-gray-400">Sistema de Monitoramento do bola</p>
+            
+            <!-- Descrição do Miyuki -->
+            <div class="mt-6 max-w-2xl mx-auto bg-gray-800/70 border border-red-500/30 rounded-xl p-6 shadow-xl">
+                <h3 class="text-xl font-bold text-red-400 mb-3">📋 Ficha do bola</h3>
+                <div class="text-left space-y-2 text-gray-300">
+                    <p><span class="font-semibold text-red-400">Nome:</span> Miyuki</p>
+                    <p><span class="font-semibold text-red-400">Idade:</span> 30 anos</p>
+                    <p><span class="font-semibold text-red-400">Altura:</span> 1,78m</p>
+                    <p><span class="font-semibold text-red-400">Características:</span> Gordo e Calvo</p>
+                    <p><span class="font-semibold text-red-400">Habitat Natural:</span> CDL e Bonfire</p>
+                    <p><span class="font-semibold text-red-400">Zoológico:</span> <a href="https://discord.gg/G5FydZmxt2" target="_blank" class="text-blue-400 hover:text-blue-300 underline">https://discord.gg/G5FydZmxt2</a></p>
+                    <p><span class="font-semibold text-red-400">Status:</span> <span class="text-yellow-400 animate-pulse">Sob Monitoramento Constante</span></p>
+                </div>
+            </div>
+
+            <!-- Arqui-inimigos e Coisas que gosta -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                <!-- Arqui-inimigos -->
+                <div class="bg-red-900/30 border border-red-500/50 rounded-xl p-5 shadow-xl">
+                    <h3 class="text-lg font-bold text-red-400 mb-3 flex items-center gap-2">
+                        ⚔️ Arqui-Inimigos
+                    </h3>
+                    <ul class="space-y-1 text-gray-300">
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-500">●</span> Locutor
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-500">●</span> Dio
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-500">●</span> Dev Titan
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-500">●</span> Erick
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-500">●</span> Dry
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-500">●</span> Mãe dele
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Coisas que gosta -->
+                <div class="bg-green-900/30 border border-green-500/50 rounded-xl p-5 shadow-xl">
+                    <h3 class="text-lg font-bold text-green-400 mb-3 flex items-center gap-2">
+                        ❤️ Coisas que Gosta
+                    </h3>
+                    <ul class="space-y-1 text-gray-300">
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-500">●</span> Pennelope
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-500">●</span> Hotroll
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-500">●</span> Pizza
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-500">●</span> Coquinha
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-500">●</span> Pedir esmola
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-500">●</span> Joguinho na Steam
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Arquipélago de Apelidos -->
+            <div class="mt-6 max-w-4xl mx-auto bg-purple-900/30 border border-purple-500/50 rounded-xl p-5 shadow-xl">
+                <h3 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2">
+                    🏝️ Arquipélago de Apelidos
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-purple-700/50 text-purple-200 px-3 py-1 rounded-full text-sm">Gordo</span>
+                    <span class="bg-purple-700/50 text-purple-200 px-3 py-1 rounded-full text-sm">Bola</span>
+                    <span class="bg-purple-700/50 text-purple-200 px-3 py-1 rounded-full text-sm">Mendigo</span>
+                    <span class="bg-purple-700/50 text-purple-200 px-3 py-1 rounded-full text-sm">Gorduky</span>
+                    <span class="bg-purple-700/50 text-purple-200 px-3 py-1 rounded-full text-sm">Mijuki</span>
+                    <span class="bg-purple-700/50 text-purple-200 px-3 py-1 rounded-full text-sm">Balão d'água</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medidor de perigo -->
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-red-500/30 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-gray-400 font-semibold">NÍVEL DE PERIGO:</span>
+                <div class="flex items-center gap-4">
+                    <span id="dangerLevel" class="text-2xl font-bold text-yellow-400 animate-pulse">
+                        BAIXO
+                    </span>
+                    <!-- Interruptor de alerta -->
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <span class="text-sm text-gray-400">Alerta Visual</span>
+                        <div class="relative">
+                            <input type="checkbox" id="alertToggle" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="relative h-8 bg-gray-700 rounded-full overflow-visible shadow-inner">
+                <div id="dangerBar" class="h-full bg-yellow-500 transition-all duration-1000 ease-out shadow-lg absolute top-0 left-0" style="width: 0%">
+                    <div class="h-full w-full animate-pulse opacity-50 bg-white"></div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between mt-2 text-xs text-gray-500">
+                <span>0%</span>
+                <span>SEGURO</span>
+                <span>PERIGO</span>
+                <span id="maxPercent">100%</span>
+            </div>
+            
+            <div class="text-center mt-4">
+                <span id="scoreDisplay" class="text-4xl font-bold text-red-400">0</span>
+                <span class="text-gray-400 ml-2">pontos de perigo</span>
+            </div>
+        </div>
+
+        <!-- Mensagem de erro -->
+        <div id="errorMessage" class="bg-red-500/20 border-2 border-red-500 rounded-lg p-4 mb-6 animate-shake hidden">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div>
+                    <p class="font-bold text-red-400">ERRO 404: Funcionalidade não encontrada</p>
+                    <p class="text-sm text-gray-300">Avaliações positivas foram desabilitadas por motivos de segurança. 🤡</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulário de comentário -->
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-700 shadow-xl">
+            <h2 class="text-2xl font-bold mb-4">Deixe sua avaliação</h2>
+            
+            <div class="mb-4">
+                <label class="flex items-center gap-2 mb-2">
+                    <input type="checkbox" id="anonymousCheck" checked class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-red-600 focus:ring-red-500">
+                    <span class="text-gray-300">Enviar como anônimo</span>
+                </label>
+                <input
+                    id="nameInput"
+                    type="text"
+                    placeholder="Seu nome"
+                    class="w-full bg-gray-700 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 hidden"
+                >
+            </div>
+
+            <textarea
+                id="commentText"
+                placeholder="Escreva seu comentário aqui..."
+                class="w-full bg-gray-700 rounded-lg p-4 mb-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[120px]"
+            ></textarea>
+
+            <!-- Upload de arquivo -->
+            <div class="mb-4">
+                <label class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 rounded-lg p-3 cursor-pointer transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <span>Anexar arquivo</span>
+                    <input type="file" id="fileInput" class="hidden" accept="image/*,application/pdf,.doc,.docx">
+                </label>
+                <div id="fileDisplay" class="mt-2 hidden">
+                    <div class="flex items-center gap-2 bg-gray-700 rounded-lg p-2">
+                        <span id="fileName" class="text-sm flex-1"></span>
+                        <button onclick="removeFile()" class="text-red-400 hover:text-red-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex gap-4">
+                <button
+                    onclick="submitReview(false)"
+                    class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+                    </svg>
+                    DESLIKE (Recomendado)
+                </button>
+                
+                <button
+                    onclick="submitReview(true)"
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-2 opacity-50"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                    </svg>
+                    Like
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de comentários -->
+        <div class="space-y-4">
+            <h2 class="text-2xl font-bold mb-4">Avaliações (<span id="commentCount">0</span>)</h2>
+            <div id="commentsList">
+                <div class="text-center text-gray-500 py-8">
+                    Nenhuma avaliação ainda. Seja o primeiro a avaliar!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        
+        let score = 0;
+        let comments = [];
+        let selectedFile = null;
+        let alertEnabled = true;
+
+        async function carregarDados() {
+            try {
+                const resposta = await fetch(`${API_URL}/dados`);
+                const dados = await resposta.json();
+                
+                score = dados.configuracoes.pontuacaoAtual;
+                alertEnabled = dados.configuracoes.alertaVisualAtivo;
+                comments = dados.avaliacoes.comentarios.map(c => ({
+                    id: c.id,
+                    text: c.texto,
+                    file: c.arquivo,
+                    name: c.autor,
+                    timestamp: c.dataHora
+                }));
+                
+                document.getElementById('alertToggle').checked = alertEnabled;
+                updateUI();
+            } catch (erro) {
+                console.error('Erro ao carregar dados:', erro);
+            }
+        }
+
+        document.getElementById('alertToggle').addEventListener('change', async function(e) {
+            alertEnabled = e.target.checked;
+            updateAlertState();
+            
+            try {
+                await fetch(`${API_URL}/alerta`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ativo: alertEnabled })
+                });
+            } catch (erro) {
+                console.error('Erro ao salvar alerta:', erro);
+            }
+        });
+
+        function updateAlertState() {
+            const pageBody = document.getElementById('pageBody');
+            const redAlertOverlay = document.getElementById('redAlertOverlay');
+            
+            if (alertEnabled && score >= 90) {
+                pageBody.classList.add('earthquake');
+                redAlertOverlay.classList.remove('hidden');
+                redAlertOverlay.classList.add('red-alert');
+            } else {
+                pageBody.classList.remove('earthquake');
+                redAlertOverlay.classList.add('hidden');
+                redAlertOverlay.classList.remove('red-alert');
+            }
+        }
+
+        function showDemonElementsTemporarily() {
+            const leftHorn = document.getElementById('leftHorn');
+            const rightHorn = document.getElementById('rightHorn');
+            const demonTail = document.getElementById('demonTail');
+            const penisElement = document.getElementById('penisElement');
+            
+            leftHorn.classList.remove('hidden');
+            rightHorn.classList.remove('hidden');
+            demonTail.classList.remove('hidden');
+            penisElement.classList.remove('hidden');
+            
+            setTimeout(() => {
+                leftHorn.classList.add('hidden');
+                rightHorn.classList.add('hidden');
+                demonTail.classList.add('hidden');
+                penisElement.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Manipulador de checkbox anônimo
+        document.getElementById('anonymousCheck').addEventListener('change', function(e) {
+            const nameInput = document.getElementById('nameInput');
+            if (e.target.checked) {
+                nameInput.classList.add('hidden');
+                nameInput.value = '';
+            } else {
+                nameInput.classList.remove('hidden');
+            }
+        });
+
+        // Manipulador de arquivo - AGORA COM SUPORTE A IMAGENS
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    selectedFile = {
+                        name: file.name,
+                        size: (file.size / 1024).toFixed(2) + ' KB',
+                        type: file.type,
+                        data: event.target.result
+                    };
+                    document.getElementById('fileName').textContent = `${selectedFile.name} (${selectedFile.size})`;
+                    document.getElementById('fileDisplay').classList.remove('hidden');
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function removeFile() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileDisplay').classList.add('hidden');
+        }
+
+        async function submitReview(isPositive) {
+            const commentText = document.getElementById('commentText').value;
+            const isAnonymous = document.getElementById('anonymousCheck').checked;
+            const userName = isAnonymous ? 'Anônimo' : (document.getElementById('nameInput').value.trim() || 'Anônimo');
+
+            if (isPositive) {
+                const errorMsg = document.getElementById('errorMessage');
+                errorMsg.classList.remove('hidden');
+                setTimeout(() => {
+                    errorMsg.classList.add('hidden');
+                }, 3000);
+                return;
+            }
+
+            if (commentText.trim() || selectedFile) {
+                try {
+                    const resposta = await fetch(`${API_URL}/comentario`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            texto: commentText,
+                            autor: userName,
+                            anonimo: isAnonymous,
+                            arquivo: selectedFile
+                        })
+                    });
+
+                    const resultado = await resposta.json();
+
+                    if (resultado.sucesso) {
+                        const comment = {
+                            id: resultado.comentario.id,
+                            text: resultado.comentario.texto,
+                            file: resultado.comentario.arquivo,
+                            name: resultado.comentario.autor,
+                            timestamp: resultado.comentario.dataHora
+                        };
+
+                        comments.unshift(comment);
+                        score = resultado.pontuacao;
+                        
+                        showDemonElementsTemporarily();
+                        
+                        updateUI();
+                        document.getElementById('commentText').value = '';
+                        document.getElementById('nameInput').value = '';
+                        removeFile();
+                    }
+                } catch (erro) {
+                    console.error('Erro ao enviar comentário:', erro);
+                    alert('Erro ao enviar comentário. Verifique se o servidor está rodando.');
+                }
+            }
+        }
+
+        function updateUI() {
+            // Atualizar score
+            document.getElementById('scoreDisplay').textContent = score;
+            
+            // Atualizar barra e nível de perigo
+            const dangerBar = document.getElementById('dangerBar');
+            const dangerLevel = document.getElementById('dangerLevel');
+            const warningIcon = document.getElementById('warningIcon');
+            const maxPercent = document.getElementById('maxPercent');
+            
+            // A barra pode ultrapassar 100% e ir além do design
+            const percentage = score;
+            dangerBar.style.width = percentage + '%';
+            
+            // Atualizar o valor máximo da porcentagem
+            if (score > 100) {
+                maxPercent.textContent = score + '%';
+            } else {
+                maxPercent.textContent = '100%';
+            }
+            
+            let level, color, bgColor;
+            if (score < 30) {
+                level = 'BAIXO';
+                color = 'text-yellow-400';
+                bgColor = 'bg-yellow-500';
+            } else if (score < 60) {
+                level = 'MÉDIO';
+                color = 'text-orange-400';
+                bgColor = 'bg-orange-500';
+            } else if (score < 90) {
+                level = 'ALTO';
+                color = 'text-red-400';
+                bgColor = 'bg-red-500';
+                warningIcon.classList.remove('hidden');
+            } else {
+                level = 'CRÍTICO';
+                color = 'text-red-600';
+                bgColor = 'bg-red-600';
+                warningIcon.classList.remove('hidden');
+            }
+            
+            dangerLevel.textContent = level;
+            dangerLevel.className = `text-2xl font-bold ${color} animate-pulse`;
+            dangerBar.className = `h-full ${bgColor} transition-all duration-1000 ease-out shadow-lg absolute top-0 left-0`;
+            
+            // Atualizar estado de alerta
+            updateAlertState();
+            
+            // Atualizar lista de comentários
+            document.getElementById('commentCount').textContent = comments.length;
+            
+            const commentsList = document.getElementById('commentsList');
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<div class="text-center text-gray-500 py-8">Nenhuma avaliação ainda. Seja o primeiro a avaliar!</div>';
+            } else {
+                commentsList.innerHTML = comments.map(comment => `
+                    <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-red-500/30 shadow-lg">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-red-600 rounded-full p-2 mt-1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-bold text-red-400">${comment.name}</span>
+                                    <span class="text-xs text-gray-500">${comment.timestamp}</span>
+                                </div>
+                                <p class="text-gray-300 mb-2">${comment.text || '(sem comentário)'}</p>
+                                ${comment.file ? `
+                                    <div class="bg-gray-700 rounded p-2 mb-2">
+                                        ${comment.file.type && comment.file.type.startsWith('image/') ? `
+                                            <img src="${comment.file.data}" alt="${comment.file.name}" class="max-w-full rounded mb-2 max-h-96 object-contain">
+                                        ` : ''}
+                                        <div class="text-sm text-gray-400">
+                                            📎 ${comment.file.name} (${comment.file.size})
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <button onclick="deleteComment(${comment.id})" class="text-red-400 hover:text-red-300 mt-1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function deleteComment(commentId) {
+            const password = prompt('Digite a senha para apagar o comentário:');
+            
+            if (password === null) return;
+
+            try {
+                const resposta = await fetch(`${API_URL}/excluir/${commentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senha: password })
+                });
+
+                const resultado = await resposta.json();
+
+                if (resultado.sucesso) {
+                    comments = comments.filter(c => c.id !== commentId);
+                    score = resultado.pontuacao;
+                    updateUI();
+                } else {
+                    alert('❌ Senha incorreta!');
+                }
+            } catch (erro) {
+                console.error('Erro ao excluir comentário:', erro);
+                alert('Erro ao excluir comentário.');
+            }
+        }
+        window.addEventListener('DOMContentLoaded', carregarDados);
+    </script>
+</body>
+</html>
